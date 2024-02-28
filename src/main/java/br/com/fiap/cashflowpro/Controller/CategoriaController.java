@@ -13,8 +13,4 @@ public class CategoriaController {
     public String index(){  
         return "lista";
     }
-
-
-
-
 }
