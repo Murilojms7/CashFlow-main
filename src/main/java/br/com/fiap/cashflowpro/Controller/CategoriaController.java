@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.fiap.cashflowpro.Models.Categoria;
+import br.com.fiap.cashflowpro.Repository.CategoriaRepository;
 
 
 @RequestMapping("/categoria")
@@ -30,80 +31,81 @@ public class CategoriaController {
 
     Logger log = LoggerFactory.getLogger(getClass());
 
-    List<Categoria> repository = new ArrayList<>();
+    //List<Categoria> repository = new ArrayList<>();
 
+    CategoriaRepository repository;
     //GET
     @GetMapping()//n precisa mais d: produces = "application/json"
     public List<Categoria> index(){
-        return repository;
+        return repository.findAll();
     }
 
-    //POST
-    @PostMapping()
-    public ResponseEntity<Categoria> create(@RequestBody Categoria categoria){
-        // categoria.setId(new Random().nextLong()); //esse codigo é responsabilidade da Categoria, e n deve estar aqui
-        log.info("cadastrando categoria: {}", categoria);
-        repository.add(categoria);
-        return ResponseEntity.status(201).body(categoria);
-    }
+//     //POST
+//     @PostMapping()
+//     public ResponseEntity<Categoria> create(@RequestBody Categoria categoria){
+//         // categoria.setId(new Random().nextLong()); //esse codigo é responsabilidade da Categoria, e n deve estar aqui
+//         log.info("cadastrando categoria: {}", categoria);
+//         repository.add(categoria);
+//         return ResponseEntity.status(201).body(categoria);
+//     }
 
-    //GET
-    @GetMapping("/{id}")
-    public ResponseEntity<Categoria> get (@PathVariable() Long id) {
-        log.info("buscando categoria com id {}", id);
+//     //GET
+//     @GetMapping("/{id}")
+//     public ResponseEntity<Categoria> get (@PathVariable() Long id) {
+//         log.info("buscando categoria com id {}", id);
 
-        //stream
-        var categoria = getCategoriaById(id); //esses codigo filtra por id e pega o primeiro resultado
+//         //stream
+//         var categoria = getCategoriaById(id); //esses codigo filtra por id e pega o primeiro resultado
         
-        if (categoria.isEmpty()){
-                return ResponseEntity.notFound().build();
-            }
-                return ResponseEntity.ok(categoria.get());
-    }
+//         if (categoria.isEmpty()){
+//                 return ResponseEntity.notFound().build();
+//             }
+//                 return ResponseEntity.ok(categoria.get());
+//     }
 
 
-    private Optional<Categoria> getCategoriaById(Long id) {
-        var categoria = repository
-            .stream()
-            .filter(c -> c.id().equals(id))
-            .findFirst();
-        return categoria;
-    }
+//     private Optional<Categoria> getCategoriaById(Long id) {
+//         var categoria = repository
+//             .stream()
+//             .filter(c -> c.id().equals(id))
+//             .findFirst();
+//         return categoria;
+//     }
 
-    //Delete
-    @DeleteMapping("{id}")
-    public ResponseEntity<Object> destroy(@PathVariable Long id){
-        log.info("apagando categoria {}", id);
+//     //Delete
+//     @DeleteMapping("{id}")
+//     public ResponseEntity<Object> destroy(@PathVariable Long id){
+//         log.info("apagando categoria {}", id);
 
-        var categoria = getCategoriaById(id);
+//         var categoria = getCategoriaById(id);
         
-        if (categoria.isEmpty()){
-                return ResponseEntity.notFound().build();
-            }
+//         if (categoria.isEmpty()){
+//                 return ResponseEntity.notFound().build();
+//             }
 
-        repository.remove(categoria.get());
+//         repository.remove(categoria.get());
 
-        return ResponseEntity.noContent().build();
-    }
+//         return ResponseEntity.noContent().build();
+//     }
     
-    //PUT
-    @PutMapping("/{id}")
-    public ResponseEntity<Categoria> update(
-        @PathVariable Long id,
-        @RequestBody Categoria categoria
-    ){
-        log.info("atualizado categoria com id {} para {}", id, categoria);
+//     //PUT
+//     @PutMapping("/{id}")
+//     public ResponseEntity<Categoria> update(
+//         @PathVariable Long id,
+//         @RequestBody Categoria categoria
+//     ){
+//         log.info("atualizado categoria com id {} para {}", id, categoria);
 
-        var categoriaEncontrada = getCategoriaById(id);
+//         var categoriaEncontrada = getCategoriaById(id);
         
-        if (categoriaEncontrada.isEmpty()){
-                return ResponseEntity.notFound().build();
-            }
+//         if (categoriaEncontrada.isEmpty()){
+//                 return ResponseEntity.notFound().build();
+//             }
 
-        var categoriaAtualizada = new Categoria(id, categoria.nome(), categoria.icone());
-        repository.remove(categoriaEncontrada.get());
-        repository.add(categoriaAtualizada);
+//         var categoriaAtualizada = new Categoria(id, categoria.nome(), categoria.icone());
+//         repository.remove(categoriaEncontrada.get());
+//         repository.add(categoriaAtualizada);
         
-        return ResponseEntity.ok(categoriaAtualizada);
-    }
-}
+//         return ResponseEntity.ok(categoriaAtualizada);
+//     }
+ }
