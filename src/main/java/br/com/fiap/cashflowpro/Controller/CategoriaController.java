@@ -4,9 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.OK;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -20,92 +24,91 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import br.com.fiap.cashflowpro.Models.Categoria;
 import br.com.fiap.cashflowpro.Repository.CategoriaRepository;
+import lombok.extern.slf4j.Slf4j;
 
-
-@RequestMapping("/categoria")
 @RestController
+@RequestMapping("/categoria")
+@Slf4j
 public class CategoriaController {
 
-    Logger log = LoggerFactory.getLogger(getClass());
-
-    //List<Categoria> repository = new ArrayList<>();
-
+    @Autowired // CDI - Injeção de Dependência
     CategoriaRepository repository;
-    //GET
-    @GetMapping()//n precisa mais d: produces = "application/json"
-    public List<Categoria> index(){
+
+    @GetMapping
+    public List<Categoria> index() {
         return repository.findAll();
     }
 
-//     //POST
-//     @PostMapping()
-//     public ResponseEntity<Categoria> create(@RequestBody Categoria categoria){
-//         // categoria.setId(new Random().nextLong()); //esse codigo é responsabilidade da Categoria, e n deve estar aqui
-//         log.info("cadastrando categoria: {}", categoria);
-//         repository.add(categoria);
-//         return ResponseEntity.status(201).body(categoria);
-//     }
+    @PostMapping()
+    @ResponseStatus(CREATED)
+    public Categoria create(@RequestBody Categoria categoria){
+        // categoria.setId(new Random().nextLong()); //esse codigo é responsabilidade da Categoria, e n deve estar aqui
+        log.info("cadastrando categoria: {}", categoria);
+        return repository.save(categoria); 
+    }
 
-//     //GET
-//     @GetMapping("/{id}")
-//     public ResponseEntity<Categoria> get (@PathVariable() Long id) {
-//         log.info("buscando categoria com id {}", id);
-
-//         //stream
-//         var categoria = getCategoriaById(id); //esses codigo filtra por id e pega o primeiro resultado
+     @GetMapping("/{id}")
+    public ResponseEntity<Categoria> get (@PathVariable() Long id) {
+        log.info("buscando categoria com id {}", id);
         
-//         if (categoria.isEmpty()){
-//                 return ResponseEntity.notFound().build();
-//             }
-//                 return ResponseEntity.ok(categoria.get());
-//     }
+        return repository
+            .findById(id)
+            .map((c) -> {return ResponseEntity.ok(c);})   
+            .orElse(ResponseEntity.notFound().build());
 
-
-//     private Optional<Categoria> getCategoriaById(Long id) {
-//         var categoria = repository
-//             .stream()
-//             .filter(c -> c.id().equals(id))
-//             .findFirst();
-//         return categoria;
-//     }
-
-//     //Delete
-//     @DeleteMapping("{id}")
-//     public ResponseEntity<Object> destroy(@PathVariable Long id){
-//         log.info("apagando categoria {}", id);
-
-//         var categoria = getCategoriaById(id);
+        // var categoria = repository.findById(id);
         
-//         if (categoria.isEmpty()){
-//                 return ResponseEntity.notFound().build();
-//             }
+        // if (categoria.isEmpty()){
+        //         return ResponseEntity.notFound().build();
+        //     }
+        //         return ResponseEntity.ok(categoria.get());
+    }
 
-//         repository.remove(categoria.get());
+    // private Optional<Categoria> getCategoriaById(Long id) {
+    //     var categoria = repository
+    //             .stream()
+    //             .filter(c -> c.id().equals(id))
+    //             .findFirst();
+    //     return categoria;
+    // }
 
-//         return ResponseEntity.noContent().build();
-//     }
-    
-//     //PUT
-//     @PutMapping("/{id}")
-//     public ResponseEntity<Categoria> update(
-//         @PathVariable Long id,
-//         @RequestBody Categoria categoria
-//     ){
-//         log.info("atualizado categoria com id {} para {}", id, categoria);
 
-//         var categoriaEncontrada = getCategoriaById(id);
+
+    //Delete
+    @DeleteMapping("{id}")
+    @ResponseStatus()
+    public ResponseEntity<Object> destroy(@PathVariable Long id){
+        log.info("apagando categoria {}", id);
+
+        verificaSeExisteCategoria(id);
+
+        repository.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    //PUT
+    @PutMapping("{id}")
+    @ResponseStatus(OK)
+    public Categoria update(@PathVariable Long id, @RequestBody Categoria categoria){
+        log.info("atualizando categoria com id {} para {}", id, categoria);
+
+        verificaSeExisteCategoria(id);
         
-//         if (categoriaEncontrada.isEmpty()){
-//                 return ResponseEntity.notFound().build();
-//             }
+        categoria.setId(id);
+        return repository.save(categoria);
 
-//         var categoriaAtualizada = new Categoria(id, categoria.nome(), categoria.icone());
-//         repository.remove(categoriaEncontrada.get());
-//         repository.add(categoriaAtualizada);
-        
-//         return ResponseEntity.ok(categoriaAtualizada);
-//     }
- }
+    }
+
+    private void verificaSeExisteCategoria(Long id) {
+        repository
+            .findById(id)
+            .orElseThrow(() -> new ResponseStatusException(
+                NOT_FOUND,
+                 "id da categoria não encontrado"
+                 ));
+    }    
+}
